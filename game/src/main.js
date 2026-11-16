@@ -147,11 +147,11 @@ function findEnemy(bot) {
   let bestDist = SEE_RANGE;
   const candidates = [];
   if (state.alive && bot.team === 'ember') {
-    candidates.push({ position: player, eye: player.eye, isPlayer: true, ref: null });
+    candidates.push({ position: player.position, eye: player.eye, isPlayer: true, ref: null });
   }
   for (const other of bots.bots) {
     if (other.team === bot.team || !other.alive) continue;
-    candidates.push({ position: other.mover.body, eye: other.mover.body.eye, isPlayer: false, ref: other });
+    candidates.push({ position: other.mover.body.position, eye: other.mover.body.eye, isPlayer: false, ref: other });
   }
   for (const c of candidates) {
     chestPoint.set(c.position.x, c.position.y + 1.0, c.position.z);
@@ -170,7 +170,10 @@ function botFire(bot, aim, dist) {
   const def = WEAPONS.rifle;
   eyePoint.set(b.position.x, b.position.y + b.eye, b.position.z);
   direction.subVectors(aim, eyePoint).normalize();
-  const spread = 0.004 + Math.min(1, bot.mover.groundSpeed() / 5.2) * 0.02 + dist * 0.00012;
+  // Bots are dangerous up close and wild at range: spread grows with distance,
+  // and damage falls off, so a cross-map spray rarely kills.
+  const spread = 0.006 + Math.min(1, bot.mover.groundSpeed() / 5.2) * 0.022 + dist * 0.0012;
+  const falloff = Math.max(0.4, 1 - dist / 80);
   direction.x += (simRandom() * 2 - 1) * spread;
   direction.y += (simRandom() * 2 - 1) * spread;
   direction.z += (simRandom() * 2 - 1) * spread;
@@ -183,10 +186,10 @@ function botFire(bot, aim, dist) {
   if (hit) {
     fx.addTracer(muzzlePoint, hit.point);
     if (hit.object.userData.isPlayer) {
-      damagePlayer(hit.object.userData.part === 'head' ? def.headDamage : def.damage, bot);
+      damagePlayer(Math.round((hit.object.userData.part === 'head' ? def.headDamage : def.damage) * falloff), bot);
     } else if (hit.object.userData.bot && hit.object.userData.bot.team !== bot.team) {
       const victim = hit.object.userData.bot;
-      const killed = bots.damage(victim, hit.object.userData.part === 'head' ? def.headDamage : def.damage);
+      const killed = bots.damage(victim, Math.round((hit.object.userData.part === 'head' ? def.headDamage : def.damage) * falloff));
       if (killed) hud.killfeedLine(`${bot.name} eliminated ${victim.name}`, false);
     }
   } else {
@@ -616,21 +619,21 @@ function runShot(name) {
     playerMover.teleport(0.6, 8.6, 0.35);
     player.pitch = 0.02;
     settle(20);
-    aimAt(new THREE.Vector3(0, 1.5, -6));
+    aimAt(new THREE.Vector3(4, 1.5, -8));
     hud.showOverlay('start');
   } else if (name === 'play') {
     round.state.phase = 'live';
     round.state.phaseTime = ROUND_TIME;
     prevPhase = 'live';
-    playerMover.teleport(0, 8, 0);
+    playerMover.teleport(3, 4, 0);
     const enemy = bots.ember[0];
-    enemy.mover.teleport(0, -2, Math.PI);
+    enemy.mover.teleport(4.5, -2, Math.PI);
     enemy.state = 'hold';
     const enemy2 = bots.ember[1];
-    enemy2.mover.teleport(-4, -6, Math.PI * 0.75);
+    enemy2.mover.teleport(-2, -6, Math.PI * 0.75);
     enemy2.state = 'hold';
     settle(10);
-    const chest = new THREE.Vector3(0, 1.0, -2);
+    const chest = new THREE.Vector3(4.5, 1.0, -2);
     aimAt(chest);
     playerShoot(0);
     settle(2);

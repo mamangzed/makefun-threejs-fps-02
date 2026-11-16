@@ -23,7 +23,7 @@ export const SPAWNS = {
 // Waypoint nodes [x, z]; edges are index pairs. Bots walk node to node.
 export const WAYPOINTS = {
   nodes: [
-    [0, 15], [-4, 15], [4, 15], [0, 8], [0, 1], [0, -6],
+    [0, 15], [-4, 15], [4, 15], [0, 8], [-3, 1], [2, -6],
     [-8, 9], [-14, 2], [-15, -11], [8, 9], [14, 2], [15, -11],
     [0, -14], [-6, -14], [6, -14], [-8, -4], [8, -4],
     [-14, -14], [14, -14], [-9, 13], [9, 13],
@@ -32,7 +32,7 @@ export const WAYPOINTS = {
     [0, 3], [1, 6], [2, 9], [1, 0], [2, 0], [3, 4],
     [4, 5], [4, 7], [4, 10], [5, 15], [5, 16], [5, 12], [6, 7], [7, 8],
     [7, 15], [8, 17], [9, 10], [10, 11], [10, 16], [11, 18], [12, 13],
-    [12, 14], [12, 5], [13, 15], [13, 17], [14, 16], [14, 18], [15, 17],
+    [12, 14], [12, 5], [13, 17], [14, 18], [15, 17],
     [16, 18], [6, 19], [9, 20], [19, 0], [20, 0],
   ],
 };
@@ -102,7 +102,16 @@ export function createMap(scene) {
   // Pillars in the middle of the arena.
   box(1.2, 3.6, 1.2, -10, 1.8, 0, mat.steel);
   box(1.2, 3.6, 1.2, 10, 1.8, 0, mat.steel);
-  box(1.2, 3.6, 1.2, 0, 1.8, -13.5, mat.steel);
+  box(1.2, 3.6, 1.2, 3.5, 1.8, -13.5, mat.steel);
+
+  // The mid block: a tall foundry press that breaks the spawn-to-spawn sightline,
+  // so the round opens with movement, not a cross-map shootout. The waypoint
+  // graph routes around it (nodes 4 and 5 sit off the x = 0 line).
+  box(1.6, 3.4, 1.0, 0, 1.7, -1, mat.steel);
+
+  // The mid block: a tall foundry press that breaks the spawn-to-spawn sightline,
+  // so the round opens with movement, not a cross-map shootout. The waypoint
+  // graph routes around it (nodes 4 and 5 sit off the x = 0 line).
 
   // Crates: crouch cover, placed off the waypoint lines.
   box(1.4, 1.1, 1.4, -3.2, 0.55, 6, mat.steel);

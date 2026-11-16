@@ -16,6 +16,8 @@ const BOT_FRICTION = 8;
 const SEE_RANGE = 45;
 const REACT_MIN = 0.35;
 const REACT_MAX = 0.75;
+const REACT_PER_METRE = 0.01;
+const ENGAGE_RANGE = 26;
 const BURST_MIN = 3;
 const BURST_MAX = 5;
 const BURST_GAP = 0.115;
@@ -214,9 +216,19 @@ export function createBots(scene, colliders) {
       bot.perceiveTimer = 0.12;
       const enemy = world.findEnemy(bot);
       if (enemy) {
-        if (!bot.visibleEnemy) bot.reactionAt = world.now + range(random, REACT_MIN, REACT_MAX);
-        bot.visibleEnemy = enemy;
-        bot.lastSeenAt = world.now;
+        const dx = enemy.position.x - body.position.x;
+        const dz = enemy.position.z - body.position.z;
+        const dist = Math.hypot(dx, dz);
+        // Too far to duel: keep routing and let the fight come closer.
+        // Reaction also grows with distance, so a long angle is a warning,
+        // not an instant death.
+        if (dist > ENGAGE_RANGE) {
+          bot.visibleEnemy = null;
+        } else {
+          if (!bot.visibleEnemy) bot.reactionAt = world.now + range(random, REACT_MIN, REACT_MAX) + dist * REACT_PER_METRE;
+          bot.visibleEnemy = enemy;
+          bot.lastSeenAt = world.now;
+        }
       } else if (bot.visibleEnemy && world.now - bot.lastSeenAt > 2) {
         bot.visibleEnemy = null;
       }
